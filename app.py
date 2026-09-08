@@ -1,7 +1,10 @@
 from __future__ import annotations
 import streamlit as st
+import requests  # 1. إضافة مكتبة requests
 from config.settings import VECTOR_DB_DIR
-from workflow.graph import ask
+
+# رابط خادم FastAPI
+API_URL = "http://127.0.0.1:8000"
 
 st.set_page_config(page_title="ASEEL | Saudi Cultural Etiquette", page_icon="🌿", layout="centered")
 st.title("ASEEL")
@@ -22,7 +25,7 @@ with right:
 prompt = st.chat_input("Ask about a visit, meal, occasion, or regional custom…")
 if prompt:
     if not VECTOR_DB_DIR.exists() or not any(VECTOR_DB_DIR.iterdir()):
-        st.error("Knowledge index not found. Add CSVs to data/raw and run `python scripts/build_index.py`.")
+        st.error("Knowledge index not found. Add CSVs to data/raw and run `python -m scripts.build_index`.")
     else:
         st.session_state.messages.append({"role": "user", "content": prompt})
         with st.chat_message("user"): st.markdown(prompt)
@@ -30,10 +33,19 @@ if prompt:
         with st.chat_message("assistant"):
             with st.spinner("ASEEL is understanding, retrieving, and validating…"):
                 try:
-                    result = ask(prompt, history)
+                    # 2. إرسال الطلب إلى FastAPI بدلاً من الاستدعاء المباشر
+                    response = requests.post(
+                        f"{API_URL}/chat", 
+                        json={"prompt": prompt, "history": history}
+                    )
+                    if response.status_code == 200:
+                        result = response.json()
+                    else:
+                        st.error(f"Server Error: {response.status_code}")
+                        result = {"answer": "Error connecting to FastAPI endpoint."}
                 except Exception as exc:
                     st.error(f"ASEEL could not process that request: {exc}")
-                    result = {"answer": "Please confirm the knowledge index is built and try again."}
+                    result = {"answer": "Please confirm FastAPI server is running."}
             st.markdown(result["answer"])
             if result.get("sources"):
                 with st.expander("Knowledge-base sources"):
