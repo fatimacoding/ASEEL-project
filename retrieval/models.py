@@ -24,3 +24,4 @@ class KnowledgeRecord:
 class RetrievedKnowledge:
     record: KnowledgeRecord
     relevance: float
+    distance: float | None = None

@@ -14,9 +14,9 @@ User -> Understanding Agent -> Retrieval Agent -> Cultural Validation Agent
 
 The LangGraph workflow passes a structured shared state containing the interpreted region, user role, occasion, retrieval query, retrieval attempts, retrieved records, validation result, response, and sources.
 
-- **Understanding agent** extracts stated region, role, and occasion without treating guesses as facts.
-- **Retrieval agent** searches a persisted ChromaDB collection using local SentenceTransformer embeddings. If a region is stated, it filters to that region.
-- **Cultural validation agent** rejects low-relevance or region-mismatched records and permits one conservative query-refinement retry.
+- **Understanding agent** uses a Context Extraction Tool and Region Resolution Tool to form a structured, non-cultural interpretation of the request.
+- **Retrieval agent** uses a Cultural Search Tool and Metadata Filter Tool to search a persisted ChromaDB collection using local SentenceTransformer embeddings, then enforce region/category scope.
+- **Cultural validation agent** uses an Evidence Validation Tool and Conflict Check Tool to reject low-relevance, region-mismatched, contradictory, or unscoped mixed-region records before permitting one conservative query-refinement retry.
 - **Response agent** creates a source-grounded response. With an OpenAI key it writes a polished answer; without one, it still works with a deterministic, evidence-only response. It never calls an LLM when there is no validated knowledge.
 
 ## Project layout

@@ -9,14 +9,14 @@ def test_understanding_extracts_region_and_role():
     assert result["user_role"] == "Tourist"
 
 def test_validation_rejects_irrelevant_knowledge(monkeypatch):
-    monkeypatch.setattr("agents.validation.MIN_RELEVANCE", 0.7)
+    monkeypatch.setattr("tools.evidence_validation.MIN_RELEVANCE", 0.7)
     state = {"region": "East", "retrieved": [{"region": "East", "relevance": 0.2}]}
     result = validate_cultural_knowledge(state)
     assert result["validated"] == []
     assert route_after_validation({**state, **result, "attempts": 1}) == "respond"
 
 def test_validation_rejects_wrong_region(monkeypatch):
-    monkeypatch.setattr("agents.validation.MIN_RELEVANCE", 0.1)
+    monkeypatch.setattr("tools.evidence_validation.MIN_RELEVANCE", 0.1)
     result = validate_cultural_knowledge({"region": "East", "retrieved": [{"region": "West", "relevance": 0.9}]})
     assert result["validated"] == []
 

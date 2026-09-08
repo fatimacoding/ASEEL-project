@@ -35,6 +35,9 @@ class CulturalVectorStore:
         result = self.collection.query(query_texts=[query], n_results=min(limit, count), where=where, include=["documents", "metadatas", "distances"])
         found: list[RetrievedKnowledge] = []
         for metadata, distance in zip(result["metadatas"][0], result["distances"][0]):
+            distance = float(distance)
             record = KnowledgeRecord(id="retrieved", question=metadata["question"], answer=metadata["answer"], choices=metadata.get("choices", ""), region=metadata["region"], domain=metadata["domain"], category=metadata["category"], question_type=metadata.get("question_type", "Unspecified"))
-            found.append(RetrievedKnowledge(record, max(0.0, 1.0 - float(distance))))
+            # Chroma's cosine HNSW distance is a distance (lower is better),
+            # so relevance is the derived similarity-like score: 1 - distance.
+            found.append(RetrievedKnowledge(record, max(0.0, 1.0 - distance), distance))
         return found
